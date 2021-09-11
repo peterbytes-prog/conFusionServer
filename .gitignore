@@ -158,6 +158,9 @@ dist
 
 node_modules
 
+sessions
+sessions/*
+
 *.sublime*
 
 psd
