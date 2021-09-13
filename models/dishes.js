@@ -15,8 +15,8 @@ const commentSchema = new Schema({
     required:true
   },
   author:{
-    type:String,
-    required:true
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'User'
   },
 },{
   timestamps:true
@@ -34,7 +34,9 @@ const dishSchema = new Schema(
     type:String,
     required:true
   },
-    comments:[ commentSchema ],
+    comments:[
+       commentSchema
+     ],
     image:{
       type:String,
       required:true
