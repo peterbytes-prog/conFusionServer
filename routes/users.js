@@ -8,13 +8,23 @@ router.use(bodyParser.json());
 
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+router.get('/', authenticate.verifyUser,authenticate.verifyAdmin,function(req, res, next) {
+  res.statusCode = 200;
+  res.setHeader('Content-Type','application/json');
+  User.find({})
+  .then((users)=>{
+    res.status = 200;
+    res.setHeader('Content-Type','application/json');
+    res.json(users)
+  },(err)=>{
+    next(err);
+  })
+  .catch((err)=>{
+    next(err);
+  })
 });
 
 router.post('/signup',function(req,res,next){
-
-  console.log('signup',req.body)
   User.register(new User(
     {username:req.body.username}),req.body.password,
     (err,user)=>{
