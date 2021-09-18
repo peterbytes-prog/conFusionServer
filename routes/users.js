@@ -76,6 +76,16 @@ router.get('/logout',cors.corsWithOptions, (req,res,next)=>{
     err.status = 403;
     next(err);
   }
+});
+
+//this is call after the user as granted permission and already obtained token from facebook
+router.get('/facebook/token',passport.authenticate('facebook-token'),(req,res)=>{
+  if(req.user){
+    var token = authenticate.getToken({_id:req.user._id});
+    res.statusCode = 200;
+    res.setHeader('Content-Type','application/json');
+    res.json({success:true, token, status:'Successfully Login'})
+  }
 })
 
 module.exports = router;
