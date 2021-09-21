@@ -5,7 +5,7 @@ const cors = require('./cors');
 const app = express();
 app.use(bodyParser.json());
 const mongoose = require('mongoose');
-var Favorites = require('../models/favorites');
+var Favorites = require('../models/favorite');
 const authenticate = require('../authenticate');
 
 favoriteRouter.route('/')
