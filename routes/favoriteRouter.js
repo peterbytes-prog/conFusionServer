@@ -79,8 +79,26 @@ favoriteRouter.route('/:dishId')
 .options(cors.corsWithOptions, (req,res)=>{ res.sendStatus(200) })
 .get(cors.cors,authenticate.verifyUser,(req,res,next)=>{
   //not allow
-  res.statusCode = 403;
-  res.end('Get operation not supported on /users/favourites/'+req.params.dishId);
+  Favorites.findOne({user:req.user._id})
+  .then((favorites)=>{
+    if(!favourites){
+      res.statusCode = 200;
+      res.setHeader('Content-Type','application/json');
+      return res.json({'exits':false,"favorites":favourites})
+    }else{
+      if(favorites.dishes.indexOf(req.params.dishId)<0){
+        res.statusCode = 200;
+        res.setHeader('Content-Type','application/json');
+        return res.json({'exits':false,"favorites":favourites})
+      }
+      else{
+        res.statusCode = 200;
+        res.setHeader('Content-Type','application/json');
+        return res.json({'exits':true,"favorites":favourites})
+      }
+    }
+  },(err)=>next(err))
+  .catch((err)=>next(err))
 })
 .post(cors.cors,authenticate.verifyUser,(req,res,next)=>{
   //no need to populate res
@@ -91,9 +109,14 @@ favoriteRouter.route('/:dishId')
       favIns.dishes.push(req.params.dishId);
       favIns.save()
       .then((fav)=>{
-        res.statusCode = 200;
-        res.setHeader('Content-Type','application/json');
-        res.json(fav);
+        Favorites.findById(fav._id)// TODO: why not just use the favorite returned??
+        .populate('user')
+        .populate('dishes')
+        .then((favorites)=>{
+          res.statusCode = 200;
+          res.setHeader('Content-Type','application/json');
+          res.json(favorites);
+        })
       },(err)=>next(err))
       .catch((err)=>next(err))
     }else{
@@ -103,18 +126,22 @@ favoriteRouter.route('/:dishId')
         fav.dishes.push(req.params.dishId);
         fav.save()
         .then((fav)=>{
-          res.statusCode = 200;
-          res.setHeader('Content-Type','application/json');
-          res.json(fav);
+          Favorites.findById(fav._id)
+          .populate('user')
+          .populate('dishes')
+          then((favorites)=>{
+            res.statusCode = 200;
+            res.setHeader('Content-Type','application/json');
+            res.json(favorites);
         },(err)=>{
           next(err);
         })
-        .catch((err)=>next(err))
-      },(err)=>next(err))
-      .catch((err)=>next(err))
+        .catch((err)=>next(err))},(err)=>next(err))
+      .catch((err)=>next(err));},(err)=>next(err))
+      .catch((err)=>next(err));
     }
-  },(err)=>next(err))
-  .catch((err)=>next(err));
+  })
+  .catch(err=>next(err));
 })
 .put(cors.cors,authenticate.verifyUser,(req,res,next)=>{
   //not allow
@@ -129,9 +156,17 @@ favoriteRouter.route('/:dishId')
     favIns.dishes.remove(req.params.dishId);
     favIns.save()
     .then((fav)=>{
-      res.statusCode = 200;
-      res.setHeader('Content-Type','application/json');
-      res.json(fav);
+      Favorites.findById(fav._id)
+      .populate('user')
+      .populate('dishes')
+      .then((favorites)=>{
+        res.statusCode = 200;
+        res.setHeader('Content-Type','application/json');
+        res.json(favorites);
+      },(err)=>next(err))
+      .catch((err)=>{
+        next(err);
+      })
     },(err)=>{
       next(err);
     })
