@@ -41,6 +41,7 @@ var isOwner = function(req,res,next){
 commentRouter.route('/')
 .options(cors.corsWithOptions, (req,res)=>{ res.sendStatus(200) })
 .get(cors.cors,(req,res,next) => {
+  console.log('requesting comments')
     // console.log('comments',Comments,Dishes,'Done');
     Comments.find({})
     .populate('author')
@@ -54,19 +55,28 @@ commentRouter.route('/')
 .post(cors.corsWithOptions,authenticate.verifyUser,(req, res, next) => {
     if(req.body != null){
       req.body.author = req.user;
-      console.log(req.body);
-      Comments.create(req.body)
-      .then((comment) => {
-        console.log('err in creation')
-        Comments.findById(comment._id)
-        .populate('author')
-        .then((comment)=>{
-          res.statusCode = 200;
-          res.setHeader('Content-Type','application/json');
-          res.json(comment);
+      Dishes.findById(req.body.dishId)
+      .then((dish)=>{
+        Comments.create({...req.body, dish:dish})
+        .then((comment) => {
+          Comments.findById(comment._id)
+          .populate('author')
+          .then((comment)=>{
+            res.statusCode = 200;
+            res.setHeader('Content-Type','application/json');
+            res.json(comment);
+          })
+        }, (err) => {
+            next(err)
+          })
+        .catch((err) => {
+          next(err)
+        });
+      },(err)=>{
+        next(err)})
+      .catch((err)=>{
+          next(err)
         })
-      }, (err) => next(err))
-      .catch((err) => next(err));
     }else{
       err = new Error('Comment not found in request body');
       err.status = 404;
